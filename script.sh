@@ -8,6 +8,7 @@ do
 			for buckets in 4 5 6
 			do
 				python3 balance.py $alpha $gamma $eps $buckets -1 False 5
+				python3 sarsa.py $alpha $gamma $eps $buckets -1 False 5
 				python3 plot.py $alpha $gamma $eps $buckets
 			done
 		done

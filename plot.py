@@ -3,11 +3,11 @@ import csv
 import sys
 import numpy as np
 
-def plot(alpha, gamma, eps, buckets):
-    file_name = "results_stddev/a{}_g{}_e{}_b{}.csv".format(alpha,gamma,eps,buckets)
+def plot(dir_name, alpha, gamma, eps, buckets):
+    file_name = "results_{}/a{}_g{}_e{}_b{}.csv".format(dir_name,alpha,gamma,eps,buckets)
     moving_average_mean = []
     moving_average_stddev = []
-    step = 10
+    step = 20
 
     with open(file_name,'r') as csvfile:
         data = csv.reader(csvfile, delimiter=',')
@@ -39,7 +39,8 @@ def plot(alpha, gamma, eps, buckets):
     plt.ylabel('reward')
     plt.legend(handles=[plt_mean, plt_mean_minus_stddev, plt_mean_plus_stddev])
     plt.title("alpha={}, gamma={}, epsilon={}, buckets={}".format(alpha,gamma,eps,buckets))
-    plt.savefig("plots_stddev/a{}_g{}_e{}_b{}.png".format(alpha,gamma,eps,buckets))
+    plt.savefig("plots_{}/a{}_g{}_e{}_b{}.png".format(dir_name,alpha,gamma,eps,buckets))
+    plt.clf()
 
 def main():
     argv = sys.argv
@@ -53,7 +54,8 @@ def main():
         print(traceback.format_exc())
         sys.exit(1)
 
-    plot(alfa,gamma,eps,buckets)
+    plot('stddev',alfa,gamma,eps,buckets)
+    plot('sarsa_stddev',alfa,gamma,eps,buckets)
 
 if __name__ == '__main__':
     main()
