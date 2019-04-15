@@ -4,6 +4,8 @@ import sys
 import gym
 import random
 import csv
+import numpy as np
+import statistics as stats
 
 LEFT_MOVE = 0
 RIGHT_MOVE = 1
@@ -117,6 +119,7 @@ class QLearner:
 def main():
     argv = sys.argv
     attempts = 10000
+    global_result = []
     try:
         alfa = float(argv[1])
         gamma = float(argv[2])
@@ -124,18 +127,32 @@ def main():
         buckets = int(argv[4])
         penalty = float(argv[5])
         if_render = True if argv[6] in ['True', 'true', '1'] else False
+        repetitions = int(argv[7])
     except Exception:
-        print('invalid or missing parameters: alfa gamma eps buckets penalty if_render')
+        print('invalid or missing parameters: alfa gamma eps buckets penalty if_render repetitions')
         print(traceback.format_exc())
         sys.exit(1)
-    learner = QLearner(alfa,gamma,eps,buckets,penalty,if_render)
-    learner.learn(attempts)
 
-    file_name = "results/a{}_g{}_e{}_b{}.csv".format(alfa,gamma,eps,buckets)
+    for i in range(repetitions):
+        learner = QLearner(alfa,gamma,eps,buckets,penalty,if_render)
+        learner.learn(attempts)
+        global_result.append(learner.result)
+
+    file_name = "results_stddev/a{}_g{}_e{}_b{}.csv".format(alfa,gamma,eps,buckets)
     with open(file_name,'w') as f:
         writer = csv.writer(f,delimiter=',')
-        for r in zip(range(attempts),learner.result):
-            writer.writerow(r)
+        writer.writerow(["attempt","mean","stddev"])
+        for a in range(attempts):
+            all_results_per_attempt = []
+            for r in range(repetitions):
+                all_results_per_attempt.append(global_result[r][a])
+
+            mean = np.mean(all_results_per_attempt)
+            if repetitions > 1:
+                std = stats.stdev(all_results_per_attempt)
+            else:
+                std = 0.0
+            writer.writerow([a+1,mean,std])
     f.close()
 
 if __name__ == '__main__':

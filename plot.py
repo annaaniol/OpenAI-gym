@@ -1,32 +1,45 @@
 import matplotlib.pyplot as plt
 import csv
 import sys
+import numpy as np
 
 def plot(alpha, gamma, eps, buckets):
-    file_name = "results/a{}_g{}_e{}_b{}.csv".format(alpha,gamma,eps,buckets)
-    moving_average = []
+    file_name = "results_stddev/a{}_g{}_e{}_b{}.csv".format(alpha,gamma,eps,buckets)
+    moving_average_mean = []
+    moving_average_stddev = []
     step = 10
 
     with open(file_name,'r') as csvfile:
         data = csv.reader(csvfile, delimiter=',')
-        new_sum_until_now = 0
+        next(data, None)
+        new_mean_until_now = 0
+        new_stddev_until_now = 0
 
         for res in data:
-            new_sum_until_now += float(res[1])
-            if (int(res[0])+1)%step == 0:
-                moving_average.append(new_sum_until_now/step)
-                new_sum_until_now = 0
+            new_mean_until_now += float(res[1])
+            new_stddev_until_now += float(res[2])
+            if (int(res[0]))%step == 0:
+                moving_average_mean.append(new_mean_until_now/step)
+                moving_average_stddev.append(new_stddev_until_now/step)
+                new_mean_until_now = 0
+                new_stddev_until_now = 0
 
-        x, y = [], []
-        for counter, num in enumerate(moving_average,1):
-            x.append(num)
-            y.append(counter*10)
+        x, mean, mean_minus_stddev, mean_plus_stddev = [], [], [], []
+        for counter, res in enumerate(zip(moving_average_mean,moving_average_stddev),1):
+            mean.append(res[0])
+            mean_minus_stddev.append(res[0]-res[1])
+            mean_plus_stddev.append(res[0]+res[1])
+            x.append(counter*10)
 
-    plt.plot(y,x)
+    plt_mean, = plt.plot(x,mean,'b',label='mean')
+    plt_mean_minus_stddev, = plt.plot(x,mean_minus_stddev,'--',label='- std dev')
+    plt_mean_plus_stddev, = plt.plot(x,mean_plus_stddev,'--',label='+ std dev')
+    plt.fill_between(x, mean_minus_stddev, mean_plus_stddev, color='grey', alpha='0.2')
     plt.xlabel('attempt')
     plt.ylabel('reward')
+    plt.legend(handles=[plt_mean, plt_mean_minus_stddev, plt_mean_plus_stddev])
     plt.title("alpha={}, gamma={}, epsilon={}, buckets={}".format(alpha,gamma,eps,buckets))
-    plt.savefig("plots/a{}_g{}_e{}_b{}.png".format(alpha,gamma,eps,buckets))
+    plt.savefig("plots_stddev/a{}_g{}_e{}_b{}.png".format(alpha,gamma,eps,buckets))
 
 def main():
     argv = sys.argv
